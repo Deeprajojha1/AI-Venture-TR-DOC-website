@@ -1,0 +1,55 @@
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { usingMemory } from "../config/db.js";
+import { inMemoryStore } from "../services/inMemoryStore.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { requireFields } from "../utils/validation.js";
+
+const tokenFor = (user) => jwt.sign({ id: user.id || user._id.toString() }, process.env.JWT_SECRET || "dev-secret", { expiresIn: "7d" });
+const publicUser = (user) => ({ id: user.id || user._id.toString(), name: user.name, email: user.email });
+
+export const register = asyncHandler(async (req, res) => {
+  requireFields(req.body, ["name", "email", "password"]);
+  const email = req.body.email.toLowerCase().trim();
+
+  const existing = usingMemory()
+    ? inMemoryStore.users.find((user) => user.email === email)
+    : await User.findOne({ email });
+  if (existing) {
+    const error = new Error("Email already registered");
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const passwordHash = await bcrypt.hash(req.body.password, 10);
+  const user = usingMemory()
+    ? {
+        id: inMemoryStore.makeId("user"),
+        name: req.body.name,
+        email,
+        passwordHash,
+        createdAt: inMemoryStore.now(),
+        updatedAt: inMemoryStore.now()
+      }
+    : await User.create({ name: req.body.name, email, passwordHash });
+
+  if (usingMemory()) inMemoryStore.users.push(user);
+  res.status(201).json({ success: true, user: publicUser(user), token: tokenFor(user) });
+});
+
+export const login = asyncHandler(async (req, res) => {
+  requireFields(req.body, ["email", "password"]);
+  const email = req.body.email.toLowerCase().trim();
+  const user = usingMemory()
+    ? inMemoryStore.users.find((item) => item.email === email)
+    : await User.findOne({ email });
+
+  if (!user || !(await bcrypt.compare(req.body.password, user.passwordHash))) {
+    const error = new Error("Invalid credentials");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  res.json({ success: true, user: publicUser(user), token: tokenFor(user) });
+});
