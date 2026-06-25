@@ -3,14 +3,15 @@ import { useStudioStore } from "../store/useStudioStore";
 import { api } from "../services/api";
 import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
-import { BrainCircuit, Lock, Mail, Rocket, Sparkles } from "lucide-react";
+import { BrainCircuit, Lock, Mail, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
 import { PageLoader } from "../components/ui/Loader";
 
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("founder@example.com");
-  const [password, setPassword] = useState("password123");
+  const [name, setName] = useState("Founder");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -20,7 +21,11 @@ export const AuthPage = () => {
     setErrorMsg("");
 
     try {
-      await api.login(email, password);
+      if (isLogin) {
+        await api.login(email, password);
+      } else {
+        await api.register(name, email, password);
+      }
     } catch (err) {
       setErrorMsg(err.message);
     } finally {
@@ -78,18 +83,22 @@ export const AuthPage = () => {
             </div>
           )}
 
-          {/* Credentials Info Note */}
-          <div className="mb-6 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-xs text-gray-400 space-y-1">
-            <div className="flex items-center gap-1.5 font-bold text-violet-300 uppercase tracking-wider mb-1">
-              <Sparkles className="h-3.5 w-3.5" />
-              Demo Credentials
-            </div>
-            <div>Email: <code className="text-white">founder@example.com</code></div>
-            <div>Password: <code className="text-white">password123</code></div>
-          </div>
-
           {/* Credentials Form */}
           <form onSubmit={handleAuth} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase text-gray-400 tracking-wider">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="Founder"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 transition-all duration-300"
+                />
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase text-gray-400 tracking-wider">Email Address</label>
               <div className="relative">

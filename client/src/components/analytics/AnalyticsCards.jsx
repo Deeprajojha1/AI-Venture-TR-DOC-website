@@ -1,10 +1,12 @@
 import React from "react";
 import { Card, CardContent } from "../ui/Card";
-import { ANALYTICS_DATA } from "../../data/dummyData";
 import { Cpu, Hourglass, Percent, ShieldCheck } from "lucide-react";
 
-export const AnalyticsCards = () => {
-  const { avgRuntime, completionRate, tokenUsage, mostUsedAgent } = ANALYTICS_DATA.cards;
+export const AnalyticsCards = ({ analytics }) => {
+  const avgRuntime = analytics?.averageRuntime ? `${Math.round(analytics.averageRuntime / 1000)}s` : "0s";
+  const completionRate = `${analytics?.completionRate || 0}%`;
+  const tokenUsage = (analytics?.tokenUsage || 0).toLocaleString();
+  const mostUsedAgent = analytics?.mostUsedAgent || "None";
 
   const cardData = [
     {
@@ -26,14 +28,14 @@ export const AnalyticsCards = () => {
       value: tokenUsage,
       icon: Cpu,
       color: "text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.05)]",
-      desc: "Context tokens (Claude/Gemini)"
+      desc: "Context tokens used by completed runs"
     },
     {
       title: "Most Active Agent",
       value: mostUsedAgent,
       icon: ShieldCheck,
       color: "text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]",
-      desc: "CTO System architecture runner"
+      desc: "Highest completed run count"
     }
   ];
 

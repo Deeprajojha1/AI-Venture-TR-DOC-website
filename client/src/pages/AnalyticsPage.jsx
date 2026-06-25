@@ -1,20 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AnalyticsCards from "../components/analytics/AnalyticsCards";
 import UsageChart from "../components/analytics/UsageChart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { BarChart3, ShieldCheck, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { api } from "../services/api";
 
 export const AnalyticsPage = () => {
-  // Mock performance vector for agent capabilities
+  const [analytics, setAnalytics] = useState(null);
+  const [systemLogs, setSystemLogs] = useState([]);
+
+  useEffect(() => {
+    api.getAnalytics()
+      .then((data) => {
+        setAnalytics(data);
+        setSystemLogs([
+          { module: "AUTH", text: "Cookie session verified", type: "success" },
+          { module: "ANALYTICS", text: `Loaded ${Object.keys(data.agentUsage || {}).length} agent counters`, type: "success" },
+          { module: "WORKFLOW", text: `${data.completionRate || 0}% completion rate across current user runs`, type: "info" }
+        ]);
+      })
+      .catch(() => {
+        setAnalytics({ averageRuntime: 0, completionRate: 0, tokenUsage: 0, mostUsedAgent: "None", agentUsage: {} });
+        setSystemLogs([{ module: "ANALYTICS", text: "Unable to load analytics from backend", type: "info" }]);
+      });
+  }, []);
+
   const capabilityData = [
-    { subject: "Context Depth", A: 90, B: 85, fullMark: 100 },
-    { subject: "Task Speed", A: 95, B: 70, fullMark: 100 },
-    { subject: "Accuracy", A: 92, B: 90, fullMark: 100 },
-    { subject: "Code Quality", A: 88, B: 95, fullMark: 100 },
-    { subject: "Compliance", A: 85, B: 80, fullMark: 100 },
-    { subject: "Creative GTM", A: 94, B: 85, fullMark: 100 }
+    { subject: "Completion", A: analytics?.completionRate || 0, fullMark: 100 },
+    { subject: "Usage", A: Math.min(100, Math.round((analytics?.tokenUsage || 0) / 1000)), fullMark: 100 },
+    { subject: "Runtime", A: analytics?.averageRuntime ? Math.max(1, 100 - Math.round(analytics.averageRuntime / 1000)) : 0, fullMark: 100 }
   ];
 
   return (
@@ -38,10 +54,10 @@ export const AnalyticsPage = () => {
       </div>
 
       {/* Metric Cards Row */}
-      <AnalyticsCards />
+      <AnalyticsCards analytics={analytics} />
 
       {/* Charts section: Area and Bar */}
-      <UsageChart />
+      <UsageChart analytics={analytics} />
 
       {/* Bottom section: Radar chart & health audit log */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -61,7 +77,6 @@ export const AnalyticsPage = () => {
                 <PolarGrid stroke="rgba(255,255,255,0.06)" />
                 <PolarAngleAxis dataKey="subject" stroke="#9ca3af" fontSize={10} />
                 <Radar name="Active Agent Cluster" dataKey="A" stroke="#a855f7" fill="#a855f7" fillOpacity={0.2} />
-                <Radar name="Baseline Model" dataKey="B" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.1} />
               </RadarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -77,14 +92,9 @@ export const AnalyticsPage = () => {
             <CardDescription>Log outputs from security checking models.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              { time: "14:20:11", module: "AUTH", text: "Verified session signature for founder@example.com", type: "success" },
-              { time: "14:02:44", module: "ORCHESTRATOR", text: "Successfully saved finalized artifact competitor_report.md", type: "success" },
-              { time: "13:58:32", module: "SECURITY", text: "Scanned database models - Zero vulnerabilities found. HIPAA checks passed.", type: "success" },
-              { time: "13:30:19", module: "COSTS", text: "Total token billing threshold is within normal bounds (<$1.50 per execution block)", type: "info" }
-            ].map((log, idx) => (
+            {systemLogs.map((log, idx) => (
               <div key={idx} className="flex gap-2.5 text-xs font-mono p-2.5 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                <span className="text-gray-600">[{log.time}]</span>
+                <span className="text-gray-600">[{new Date().toLocaleTimeString()}]</span>
                 <span className="text-purple-400 font-semibold">{log.module}</span>
                 <span className={log.type === "success" ? "text-emerald-400" : "text-gray-300"}>{log.text}</span>
               </div>

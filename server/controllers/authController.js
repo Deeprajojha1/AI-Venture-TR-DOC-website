@@ -8,10 +8,30 @@ import { requireFields } from "../utils/validation.js";
 
 const tokenFor = (user) => jwt.sign({ id: user.id || user._id.toString() }, process.env.JWT_SECRET || "dev-secret", { expiresIn: "7d" });
 const publicUser = (user) => ({ id: user.id || user._id.toString(), name: user.name, email: user.email });
+const authCookieName = "avs_token";
+const authCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: "/"
+};
+
+const sendSession = (res, statusCode, user) => {
+  res
+    .status(statusCode)
+    .cookie(authCookieName, tokenFor(user), authCookieOptions)
+    .json({ success: true, user: publicUser(user) });
+};
 
 export const register = asyncHandler(async (req, res) => {
   requireFields(req.body, ["name", "email", "password"]);
   const email = req.body.email.toLowerCase().trim();
+  if (req.body.password.length < 8) {
+    const error = new Error("Password must be at least 8 characters");
+    error.statusCode = 400;
+    throw error;
+  }
 
   const existing = usingMemory()
     ? inMemoryStore.users.find((user) => user.email === email)
@@ -35,7 +55,7 @@ export const register = asyncHandler(async (req, res) => {
     : await User.create({ name: req.body.name, email, passwordHash });
 
   if (usingMemory()) inMemoryStore.users.push(user);
-  res.status(201).json({ success: true, user: publicUser(user), token: tokenFor(user) });
+  sendSession(res, 201, user);
 });
 
 export const login = asyncHandler(async (req, res) => {
@@ -51,5 +71,20 @@ export const login = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  res.json({ success: true, user: publicUser(user), token: tokenFor(user) });
+  sendSession(res, 200, user);
+});
+
+export const me = asyncHandler(async (req, res) => {
+  res.json({ success: true, user: req.user });
+});
+
+export const logout = asyncHandler(async (_req, res) => {
+  res
+    .clearCookie(authCookieName, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/"
+    })
+    .json({ success: true });
 });

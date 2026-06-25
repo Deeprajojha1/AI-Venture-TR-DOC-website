@@ -2,14 +2,14 @@ import React, { useMemo } from "react";
 import { ReactFlow, Background, Controls } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import AgentNode from "./AgentNode";
-import { WORKFLOW_NODES_LIST } from "../../data/dummyData";
+import { getNodeStatus } from "../../utils/workflow";
 
 // Register custom node types
 const nodeTypes = {
   agentNode: AgentNode
 };
 
-export const AgentFlow = ({ completedNodes = [], currentNodeIndex = 0 }) => {
+export const AgentFlow = ({ workflowNodes = [], completedNodes = [], currentNodeIndex = 0 }) => {
   // Generate React Flow nodes
   const nodes = useMemo(() => {
     // Snake layout coordinates
@@ -31,14 +31,7 @@ export const AgentFlow = ({ completedNodes = [], currentNodeIndex = 0 }) => {
       { x: 700, y: 280 }
     ];
 
-    return WORKFLOW_NODES_LIST.map((node, index) => {
-      let status = "pending";
-      if (completedNodes.includes(index)) {
-        status = "completed";
-      } else if (index === currentNodeIndex) {
-        status = "active";
-      }
-
+    return workflowNodes.map((node, index) => {
       return {
         id: node.id,
         type: "agentNode",
@@ -46,18 +39,18 @@ export const AgentFlow = ({ completedNodes = [], currentNodeIndex = 0 }) => {
         data: {
           label: node.label,
           description: node.description,
-          status: status
+          status: getNodeStatus(completedNodes, currentNodeIndex, index)
         }
       };
     });
-  }, [completedNodes, currentNodeIndex]);
+  }, [completedNodes, currentNodeIndex, workflowNodes]);
 
   // Generate React Flow edges connecting the nodes sequentially
   const edges = useMemo(() => {
     const edgeList = [];
-    for (let i = 0; i < WORKFLOW_NODES_LIST.length - 1; i++) {
-      const sourceId = WORKFLOW_NODES_LIST[i].id;
-      const targetId = WORKFLOW_NODES_LIST[i + 1].id;
+    for (let i = 0; i < workflowNodes.length - 1; i++) {
+      const sourceId = workflowNodes[i].id;
+      const targetId = workflowNodes[i + 1].id;
 
       // Determine edge glow colors based on completion state
       const isSourceCompleted = completedNodes.includes(i);
@@ -87,7 +80,7 @@ export const AgentFlow = ({ completedNodes = [], currentNodeIndex = 0 }) => {
       });
     }
     return edgeList;
-  }, [completedNodes, currentNodeIndex]);
+  }, [completedNodes, currentNodeIndex, workflowNodes]);
 
   return (
     <div className="w-full h-[400px] rounded-2xl bg-white/[0.01] border border-white/[0.06] overflow-hidden relative shadow-[inset_0_4px_30px_rgba(0,0,0,0.5)]">

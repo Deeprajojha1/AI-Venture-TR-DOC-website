@@ -1,16 +1,14 @@
-import React, { useState } from "react";
 import { useStudioStore } from "../store/useStudioStore";
 import QuestionInput from "../components/boardroom/QuestionInput";
 import DiscussionThread from "../components/boardroom/DiscussionThread";
 import ConsensusPanel from "../components/boardroom/ConsensusPanel";
 import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
-import { AlertOctagon, HelpCircle, RefreshCw, ShieldAlert, Users } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { HelpCircle, RefreshCw, Users } from "lucide-react";
+import { motion } from "framer-motion";
 
 export const BoardroomPage = () => {
   const { resetBoardroom, discussion } = useStudioStore();
-  const [showErrorCard, setShowErrorCard] = useState(false);
 
   return (
     <motion.div
@@ -34,16 +32,6 @@ export const BoardroomPage = () => {
         {/* Action Toggles */}
         <div className="flex items-center gap-2.5 self-end sm:self-center">
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowErrorCard(!showErrorCard)}
-            className={`gap-1.5 border border-white/5 bg-white/5 cursor-pointer text-xs ${showErrorCard ? "text-red-400 border-red-500/25" : ""}`}
-          >
-            <ShieldAlert className="h-4 w-4" />
-            {showErrorCard ? "Hide Error state" : "Simulate Error State"}
-          </Button>
-
-          <Button
             variant="secondary"
             size="sm"
             onClick={resetBoardroom}
@@ -54,50 +42,6 @@ export const BoardroomPage = () => {
           </Button>
         </div>
       </div>
-
-      {/* Elegant Error State Card (if toggled) */}
-      <AnimatePresence>
-        {showErrorCard && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, y: -20 }}
-            animate={{ opacity: 1, height: "auto", y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="overflow-hidden"
-          >
-            <Card className="border-red-500/20 bg-gradient-to-r from-red-950/20 via-black to-red-950/10 shadow-[0_0_30px_rgba(239,68,68,0.1)] relative">
-              <div className="absolute top-0 bottom-0 left-0 w-[4px] bg-red-500" />
-              <CardContent className="p-5 flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="flex gap-3.5 items-start text-left">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400 border border-red-500/25 shrink-0">
-                    <AlertOctagon className="h-5.5 w-5.5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-red-200">Simulation Error: Financial Threshold Violation</h4>
-                    <p className="text-xs text-gray-400 mt-1 leading-relaxed max-w-xl">
-                      CFO David Kross has flagged that the current Customer Acquisition Cost (CAC) model exceeds the LTV ratio boundary (LTV/CAC ratio of 1.4x is below the acceptable 3.0x threshold). Agent auto-analysis is paused.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 w-full sm:w-auto shrink-0 justify-end">
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      alert("Regenerating financial assumptions using premium values...");
-                      setShowErrorCard(false);
-                    }}
-                    className="text-xs py-2 px-3 font-semibold cursor-pointer"
-                  >
-                    Auto-Adjust Projections
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Main Boardroom Workspace grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -127,9 +71,9 @@ export const BoardroomPage = () => {
               </h4>
               <div className="space-y-2">
                 {[
-                  "How should we structure our SaaS pricing tiers?",
-                  "Which database models Marcus recommends for SSE streaming?",
-                  "How should we raise our seed funding SAFE round?"
+                  "How should we structure pricing tiers?",
+                  "Which database model fits this product?",
+                  "How should we prepare for seed funding?"
                 ].map((prompt, idx) => (
                   <button
                     key={idx}

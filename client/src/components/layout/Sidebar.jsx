@@ -1,9 +1,9 @@
 import React from "react";
 import { useStudioStore } from "../../store/useStudioStore";
-import { WORKFLOW_NODES_LIST } from "../../data/dummyData";
 import { FolderGit2, Percent, Sparkles, TrendingUp } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getWorkflowNodes } from "../../utils/workflow";
 
 export const Sidebar = () => {
   const { projects, selectedProjectId, selectProject } = useStudioStore();
@@ -14,7 +14,7 @@ export const Sidebar = () => {
 
   if (!activeProject) return null;
 
-  const totalNodes = WORKFLOW_NODES_LIST.length;
+  const totalNodes = Math.max(1, getWorkflowNodes(activeProject).length);
   const completionPercentage = Math.round(
     (activeProject.completedNodes.length / totalNodes) * 100
   );
@@ -74,8 +74,9 @@ export const Sidebar = () => {
         <div className="space-y-1">
           {projects.map((proj) => {
             const isSelected = proj.id === selectedProjectId;
+            const projectTotalNodes = Math.max(1, getWorkflowNodes(proj).length);
             const completion = Math.round(
-              (proj.completedNodes.length / totalNodes) * 100
+              (proj.completedNodes.length / projectTotalNodes) * 100
             );
 
             return (

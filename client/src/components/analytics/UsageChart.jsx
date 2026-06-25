@@ -1,10 +1,19 @@
 import React from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
-import { ANALYTICS_DATA } from "../../data/dummyData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/Card";
 
-export const UsageChart = () => {
-  const { tokenHistory, agentWorkload } = ANALYTICS_DATA;
+export const UsageChart = ({ analytics }) => {
+  const tokenHistory = [
+    {
+      name: "Current",
+      tokens: analytics?.tokenUsage || 0
+    }
+  ];
+  const agentWorkload = Object.entries(analytics?.agentUsage || {}).map(([name, tasks]) => ({
+    name,
+    tasks,
+    accuracy: analytics?.completionRate || 0
+  }));
 
   // Custom tooltips to match glassmorphic dark design
   const CustomTooltip = ({ active, payload, label }) => {
@@ -67,7 +76,7 @@ export const UsageChart = () => {
         </CardHeader>
         <CardContent className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={agentWorkload} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <BarChart data={agentWorkload.length ? agentWorkload : [{ name: "No runs", tasks: 0, accuracy: 0 }]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
               <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickLine={false} />
               <YAxis stroke="#6b7280" fontSize={11} tickLine={false} />

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useStudioStore } from "../store/useStudioStore";
-import { DUMMY_REPORTS, WORKFLOW_NODES_LIST } from "../data/dummyData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import AgentFlow from "../components/workflow/AgentFlow";
@@ -8,59 +7,30 @@ import WorkflowStatus from "../components/workflow/WorkflowStatus";
 import ApprovalPanel from "../components/reports/ApprovalPanel";
 import ReportCard from "../components/reports/ReportCard";
 import ReportViewer from "../components/reports/ReportViewer";
+import { getReportKey, getWorkflowNodes } from "../utils/workflow";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
-import { ChevronRight, FileJson, Mail, Share2, Sparkles } from "lucide-react";
+import { ChevronRight, FileJson, Mail, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { api } from "../services/api";
 
 export const ProjectPage = () => {
   const { projects, selectedProjectId, reportsByProject } = useStudioStore();
-  const [selectedReportKey, setSelectedReportKey] = useState("market_report");
+  const [selectedReportKey, setSelectedReportKey] = useState(null);
+  const [actionStatus, setActionStatus] = useState("");
 
   const project = projects.find((p) => p.id === selectedProjectId) || projects[0];
+  const workflowNodes = getWorkflowNodes(project);
   const backendReports = reportsByProject[project?.id] || [];
-  const reportFileByKey = {
-    market_report: "market_report.md",
-    competitor_report: "competitor_report.md",
-    opportunity_report: "opportunity_report.md",
-    product_strategy: "product_strategy.md",
-    prd: "prd.md",
-    architecture: "architecture.md",
-    revenue_model: "revenue_model.md",
-    forecast: "forecast.md",
-    gtm: "gtm.md",
-    investor_readiness: "investor_readiness.md",
-    pitch_deck: "pitch_deck.md"
-  };
-  const selectedBackendReport = backendReports.find((report) => report.outputFile === reportFileByKey[selectedReportKey]);
-  const selectedReportContent = selectedBackendReport?.content || DUMMY_REPORTS[selectedReportKey];
+  const selectedBackendReport = backendReports.find((report) => getReportKey(report) === selectedReportKey);
+  const selectedReportContent = selectedBackendReport?.content || "Run the workflow to generate this report.";
 
   useEffect(() => {
-    // If the active project completed nodes list doesn't include the current report key,
-    // default to the latest completed report key.
-    if (project) {
-      const reportKeysOrder = [
-        "market_report",
-        "competitor_report",
-        "opportunity_report",
-        "product_strategy",
-        "prd",
-        "architecture",
-        "revenue_model",
-        "forecast",
-        "gtm",
-        "investor_readiness",
-        "pitch_deck"
-      ];
-      
-      const lastCompletedNodeIndex = project.completedNodes.filter(idx => idx > 0).pop();
-      if (lastCompletedNodeIndex) {
-        const key = reportKeysOrder[lastCompletedNodeIndex - 1];
-        if (key) setSelectedReportKey(key);
-      } else {
-        setSelectedReportKey("market_report");
-      }
-    }
-  }, [project?.completedNodes?.length, project?.id]);
+    if (!project) return;
+
+    const latestReport = [...backendReports].reverse().find((report) => getReportKey(report));
+    const firstReportNode = workflowNodes.find((node) => node.outputFile);
+    setSelectedReportKey(getReportKey(latestReport) || firstReportNode?.outputFile || null);
+  }, [backendReports.length, project?.id, workflowNodes.length]);
 
   if (!project) {
     return (
@@ -81,14 +51,15 @@ export const ProjectPage = () => {
   ];
 
   const handleExport = (format) => {
-    const reportTitle = selectedReportKey.replace(/_/g, " ").toUpperCase();
+    if (!selectedBackendReport) return;
+    const reportTitle = (selectedBackendReport.outputFile || selectedReportKey || "report").replace(/_/g, " ").toUpperCase();
     const content = selectedReportContent;
     
     if (format === "json") {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ title: reportTitle, body: content }, null, 2));
       const downloadAnchor = document.createElement("a");
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `${selectedReportKey}.json`);
+      downloadAnchor.setAttribute("download", `${selectedBackendReport.outputFile || "report"}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -97,10 +68,26 @@ export const ProjectPage = () => {
       const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(content);
       const downloadAnchor = document.createElement("a");
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `${selectedReportKey}.${format === "md" ? "md" : "txt"}`);
+      downloadAnchor.setAttribute("download", selectedBackendReport.outputFile || `report.${format === "md" ? "md" : "txt"}`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
+    }
+  };
+
+  const handlePdfExport = () => {
+    if (!project?.id) return;
+    window.open(`${import.meta.env.VITE_API_BASE_URL || "/api"}/exports/${project.id}/pdf`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleEmail = async () => {
+    if (!project?.id) return;
+    setActionStatus("Sending project email...");
+    try {
+      await api.emailProject(project.id);
+      setActionStatus("Project email sent.");
+    } catch (error) {
+      setActionStatus(error.message);
     }
   };
 
@@ -132,13 +119,14 @@ export const ProjectPage = () => {
             <FileJson className="h-4 w-4" />
             JSON
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => alert("PDF compile started...")} className="gap-1.5 border border-white/5 bg-white/5 cursor-pointer">
+          <Button variant="ghost" size="sm" onClick={handlePdfExport} className="gap-1.5 border border-white/5 bg-white/5 cursor-pointer">
             PDF
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => alert("Email dispatched to registered founder.")} className="gap-1.5 border border-white/5 bg-white/5 cursor-pointer">
+          <Button variant="ghost" size="sm" onClick={handleEmail} className="gap-1.5 border border-white/5 bg-white/5 cursor-pointer">
             <Mail className="h-4 w-4" />
             Email
           </Button>
+          {actionStatus && <span className="text-xs text-gray-400">{actionStatus}</span>}
         </div>
       </div>
 
@@ -150,13 +138,13 @@ export const ProjectPage = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Autonomous Agent Graph</h3>
             <span className="text-xs text-cyan-400 font-semibold px-2 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/20">
-              Vetting Node: {WORKFLOW_NODES_LIST[project.currentNodeIndex]?.label}
+              Vetting Node: {workflowNodes[project.currentNodeIndex]?.label || "Complete"}
             </span>
           </div>
           
-          <AgentFlow completedNodes={project.completedNodes} currentNodeIndex={project.currentNodeIndex} />
+          <AgentFlow workflowNodes={workflowNodes} completedNodes={project.completedNodes} currentNodeIndex={project.currentNodeIndex} />
           
-          <WorkflowStatus currentNodeIndex={project.currentNodeIndex} />
+          <WorkflowStatus workflowNodes={workflowNodes} currentNodeIndex={project.currentNodeIndex} />
         </div>
 
         {/* Radar Health Chart (Right) */}
@@ -203,7 +191,7 @@ export const ProjectPage = () => {
       </div>
 
       {/* Approval control board */}
-      <ApprovalPanel project={project} />
+      <ApprovalPanel project={project} workflowNodes={workflowNodes} />
 
       {/* Reports Workspace: Deliverables menu & Markdown Viewer */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
@@ -213,6 +201,7 @@ export const ProjectPage = () => {
           <ReportCard
             completedNodeIds={project.completedNodes}
             activeNodeIndex={project.currentNodeIndex}
+            workflowNodes={workflowNodes}
             selectedReportKey={selectedReportKey}
             setSelectedReportKey={setSelectedReportKey}
           />
@@ -221,7 +210,7 @@ export const ProjectPage = () => {
         {/* Markdown Document Viewer */}
         <div className="lg:col-span-3">
           <ReportViewer
-            title={`${selectedReportKey.replace(/_/g, " ").toUpperCase()}.MD`}
+            title={selectedBackendReport?.outputFile || selectedReportKey || "No report selected"}
             content={selectedReportContent}
             onExport={() => handleExport("md")}
           />

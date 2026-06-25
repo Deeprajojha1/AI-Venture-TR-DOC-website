@@ -1,6 +1,7 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useStudioStore } from "./store/useStudioStore";
+import { api } from "./services/api";
 import Navbar from "./components/layout/Navbar";
 import Sidebar from "./components/layout/Sidebar";
 import WorkspaceTabs from "./components/layout/WorkspaceTabs";
@@ -14,7 +15,11 @@ import { PageLoader } from "./components/ui/Loader";
 
 // Layout for all authenticated routes
 const DashboardLayout = () => {
-  const { isAuthenticated } = useStudioStore();
+  const { isAuthenticated, isAuthLoading } = useStudioStore();
+
+  if (isAuthLoading) {
+    return <PageLoader message="Checking secure session..." />;
+  }
 
   // Route guarding: redirect to login if unauthenticated
   if (!isAuthenticated) {
@@ -55,13 +60,21 @@ const DashboardLayout = () => {
 
 // Main routing configuration
 export const App = () => {
-  const { isAuthenticated } = useStudioStore();
+  const { isAuthenticated, isAuthLoading } = useStudioStore();
+
+  useEffect(() => {
+    api.checkSession();
+  }, []);
+
+  if (isAuthLoading) {
+    return <PageLoader message="Checking secure session..." />;
+  }
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Landing Page */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage/>} />
+        <Route path="/landing" element={isAuthenticated ? <LandingPage /> : <Navigate to="/login" replace />} />
 
         {/* Guest Auth route */}
         <Route 
@@ -85,4 +98,3 @@ export const App = () => {
 };
 
 export default App;
-

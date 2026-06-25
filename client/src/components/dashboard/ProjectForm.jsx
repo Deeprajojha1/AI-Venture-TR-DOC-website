@@ -88,6 +88,7 @@ export const ProjectForm = () => {
                 onChange={handleChange}
                 placeholder="e.g. AI-Venture Studio"
                 required
+                required
                 className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 transition-all duration-300"
               />
             </div>
@@ -101,6 +102,7 @@ export const ProjectForm = () => {
                 value={formData.industry}
                 onChange={handleChange}
                 placeholder="e.g. Fintech, Developer Tools"
+                required
                 className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 transition-all duration-300"
               />
             </div>
@@ -116,6 +118,7 @@ export const ProjectForm = () => {
                 value={formData.targetUsers}
                 onChange={handleChange}
                 placeholder="e.g. Solo-founders, Small businesses"
+                required
                 className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 transition-all duration-300"
               />
             </div>
@@ -129,6 +132,7 @@ export const ProjectForm = () => {
                 value={formData.country}
                 onChange={handleChange}
                 placeholder="e.g. Global, US, UK"
+                required
                 className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 transition-all duration-300"
               />
             </div>
@@ -144,6 +148,7 @@ export const ProjectForm = () => {
                 value={formData.budget}
                 onChange={handleChange}
                 placeholder="e.g. $100,000"
+                required
                 className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 transition-all duration-300"
               />
             </div>

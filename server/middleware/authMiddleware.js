@@ -5,10 +5,9 @@ import { inMemoryStore } from "../services/inMemoryStore.js";
 
 export const requireAuth = async (req, _res, next) => {
   try {
-    const header = req.headers.authorization || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    const token = req.cookies?.avs_token;
     if (!token) {
-      const error = new Error("Authorization token required");
+      const error = new Error("Authentication required");
       error.statusCode = 401;
       throw error;
     }

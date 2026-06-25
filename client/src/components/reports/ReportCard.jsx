@@ -1,25 +1,10 @@
 import React from "react";
-import { WORKFLOW_NODES_LIST } from "../../data/dummyData";
-import { CheckCircle2, Lock, Sparkles } from "lucide-react";
+import { CheckCircle2, Lock } from "lucide-react";
 import { cn } from "../../utils/cn";
 
-export const ReportCard = ({ completedNodeIds, activeNodeIndex, selectedReportKey, setSelectedReportKey }) => {
-  // Mapping workflow node index to dummy report key names
-  const reportKeys = [
-    "market_report",       // Node 1: Market Research
-    "competitor_report",   // Node 2: Competitor Analysis
-    "opportunity_report",  // Node 3: Opportunity Discovery
-    "product_strategy",    // Node 4: Product Strategy
-    "prd",                 // Node 5: PRD
-    "architecture",        // Node 6: Architecture
-    "revenue_model",       // Node 7: Revenue Model
-    "forecast",            // Node 8: Forecast
-    "gtm",                 // Node 9: GTM
-    "investor_readiness",  // Node 10: Investor Readiness
-    "pitch_deck"           // Node 11: Pitch Deck
-  ];
+export const ReportCard = ({ workflowNodes = [], completedNodeIds = [], activeNodeIndex, selectedReportKey, setSelectedReportKey }) => {
+  const reportNodes = workflowNodes.slice(1).filter((node) => node.outputFile);
 
-  // Idea node (index 0) has no heavy report; reports start from index 1.
   return (
     <div className="space-y-2">
       <h3 className="px-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -27,12 +12,17 @@ export const ReportCard = ({ completedNodeIds, activeNodeIndex, selectedReportKe
       </h3>
 
       <div className="space-y-1 max-h-[480px] overflow-y-auto pr-1">
-        {WORKFLOW_NODES_LIST.slice(1).map((node, idx) => {
-          const actualNodeIndex = idx + 1; // since we sliced off Idea (index 0)
+        {reportNodes.length === 0 && (
+          <div className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.02] text-xs text-gray-500">
+            Reports will appear after backend agents run.
+          </div>
+        )}
+
+        {reportNodes.map((node) => {
+          const actualNodeIndex = workflowNodes.findIndex((item) => item.id === node.id);
           const isCompleted = completedNodeIds.includes(actualNodeIndex);
           const isProcessing = actualNodeIndex === activeNodeIndex;
-          const reportKey = reportKeys[idx];
-          
+          const reportKey = node.outputFile;
           const isSelected = selectedReportKey === reportKey;
 
           return (

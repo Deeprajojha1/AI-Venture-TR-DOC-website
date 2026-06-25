@@ -1,68 +1,111 @@
 import axios from "axios";
 import { useStudioStore } from "../store/useStudioStore";
 
-// Mocking API requests using local Axios instance and interceptors.
-// If a backend URL is provided later, simply direct base URL to that environment.
 const apiInstance = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json"
   }
 });
 
-apiInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("avs_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+const isUnauthorized = (error) => error.response?.status === 401;
+
+const hydrateProjects = async () => {
+  const store = useStudioStore.getState();
+  const projectsResponse = await apiInstance.get("/projects");
+  store.setProjects(projectsResponse.data.projects);
+
+  if (projectsResponse.data.projects[0]?.id) {
+    const detail = await apiInstance.get(`/projects/${projectsResponse.data.projects[0].id}`);
+    store.setProjectReports(projectsResponse.data.projects[0].id, detail.data.reports);
   }
-  return config;
+};
+
+apiInstance.interceptors.response.use(undefined, (error) => {
+  if (isUnauthorized(error)) {
+    useStudioStore.getState().logout();
+  }
+  return Promise.reject(error);
 });
 
 export const api = {
-  // Authentication
   login: async (email, password) => {
-    const store = useStudioStore.getState();
     try {
       const response = await apiInstance.post("/auth/login", { email, password });
-      store.setSession(response.data.user, response.data.token);
+      useStudioStore.getState().setSession(response.data.user);
+
       try {
-        const projectsResponse = await apiInstance.get("/projects");
-        store.setProjects(projectsResponse.data.projects);
-        if (projectsResponse.data.projects[0]?.id) {
-          const detail = await apiInstance.get(`/projects/${projectsResponse.data.projects[0].id}`);
-          store.setProjectReports(projectsResponse.data.projects[0].id, detail.data.reports);
-        }
+        await hydrateProjects();
       } catch {
-        // Keep existing local projects if project hydration fails.
+        // Keep the authenticated session even if project hydration fails.
       }
+
       return response;
     } catch (error) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const success = store.login(email, password);
-      if (success) {
-        return { data: { success: true, user: { email }, token: "mock-jwt-token" } };
-      }
-      throw new Error(error.response?.data?.message || "Invalid credentials. Try founder@example.com / password123");
+      throw new Error(error.response?.data?.message || "Invalid credentials");
     }
   },
 
-  // Submit Startup Idea
+  register: async (name, email, password) => {
+    try {
+      const response = await apiInstance.post("/auth/register", { name, email, password });
+      useStudioStore.getState().setSession(response.data.user);
+
+      try {
+        await hydrateProjects();
+      } catch {
+        // New accounts may not have projects yet.
+      }
+
+      return response;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Unable to create account");
+    }
+  },
+
+  checkSession: async () => {
+    const store = useStudioStore.getState();
+    store.setAuthLoading(true);
+
+    try {
+      const response = await apiInstance.get("/auth/me");
+      store.setSession(response.data.user);
+
+      try {
+        await hydrateProjects();
+      } catch {
+        // Auth is valid even if workspace data cannot hydrate.
+      }
+
+      return response.data.user;
+    } catch {
+      store.logout();
+      return null;
+    } finally {
+      store.setAuthLoading(false);
+    }
+  },
+
+  logout: async () => {
+    try {
+      await apiInstance.post("/auth/logout");
+    } finally {
+      useStudioStore.getState().logout();
+    }
+  },
+
   submitIdea: async (ideaData) => {
     const store = useStudioStore.getState();
     try {
       const response = await apiInstance.post("/projects", ideaData);
       store.upsertProject(response.data.project);
       return response;
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Unable to create project");
     }
-    const projectId = store.addProject(ideaData);
-    const updatedProjects = useStudioStore.getState().projects;
-    const project = updatedProjects.find((p) => p.id === projectId);
-    return { data: { success: true, project } };
   },
 
-  // Run next workflow node
   runNextNode: async (projectId) => {
     const store = useStudioStore.getState();
     try {
@@ -71,16 +114,37 @@ export const api = {
       const detail = await apiInstance.get(`/projects/${projectId}`);
       store.setProjectReports(projectId, detail.data.reports);
       return response;
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, 400));
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Unable to run workflow");
     }
-    store.runNextNode(projectId);
-    const updatedProjects = useStudioStore.getState().projects;
-    const project = updatedProjects.find((p) => p.id === projectId);
-    return { data: { success: true, project } };
   },
 
-  // Ask Boardroom Question
+  regenerateAgent: async (projectId, agentKey) => {
+    const store = useStudioStore.getState();
+    try {
+      const response = await apiInstance.post(`/projects/${projectId}/agents/${agentKey}/regenerate`);
+      store.upsertProject(response.data.project);
+      const detail = await apiInstance.get(`/projects/${projectId}`);
+      store.setProjectReports(projectId, detail.data.reports);
+      return response;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Unable to regenerate agent");
+    }
+  },
+
+  emailProject: async (projectId) => {
+    try {
+      return await apiInstance.post(`/projects/${projectId}/email`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Unable to email project");
+    }
+  },
+
+  getAnalytics: async () => {
+    const response = await apiInstance.get("/analytics");
+    return response.data;
+  },
+
   askBoardroom: async (question) => {
     const store = useStudioStore.getState();
     await store.askBoardroom(question);

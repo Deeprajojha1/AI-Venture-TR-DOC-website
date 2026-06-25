@@ -1,10 +1,11 @@
 import React from "react";
 import { useStudioStore } from "../../store/useStudioStore";
+import { api } from "../../services/api";
 import { LogOut, Rocket, User } from "lucide-react";
 import Button from "../ui/Button";
 
 export const Navbar = () => {
-  const { user, logout } = useStudioStore();
+  const { user } = useStudioStore();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-black/40 backdrop-blur-xl transition-all duration-300">
@@ -33,7 +34,7 @@ export const Navbar = () => {
               variant="ghost"
               size="sm"
               className="text-gray-400 hover:text-red-400 gap-1.5 flex items-center hover:bg-red-500/10"
-              onClick={logout}
+              onClick={api.logout}
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Logout</span>

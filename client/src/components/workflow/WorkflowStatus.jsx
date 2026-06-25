@@ -1,36 +1,27 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Terminal } from "lucide-react";
-import { WORKFLOW_NODES_LIST } from "../../data/dummyData";
 
-const AGENT_NAMES = ["Researcher", "Competitor Analyst", "CTO Architect", "CFO Modeler", "CMO Planner", "CEO Vetting"];
+const buildLogMessages = (node) => {
+  if (!node) return [];
 
-const generateLogMessage = (nodeIndex) => {
-  const node = WORKFLOW_NODES_LIST[nodeIndex] || WORKFLOW_NODES_LIST[0];
-  const agent = AGENT_NAMES[nodeIndex % AGENT_NAMES.length];
-
-  const templates = [
-    `[INFO] [${agent}] Booting sandbox container...`,
-    `[INFO] [${agent}] Analyzing startup description for details...`,
-    `[PROCESS] [${agent}] Running semantic search on target industry: "${node.label}"...`,
-    `[SUCCESS] [${agent}] Fetched key parameters and mapped workspace metadata.`,
-    `[PROCESS] [${agent}] Compiling deliverable output...`,
-    `[READY] [${agent}] Node "${node.label}" finalized. Awaiting review.`
+  return [
+    `[INFO] [${node.label}] Preparing agent runtime...`,
+    `[PROCESS] [${node.label}] Loading project context...`,
+    `[PROCESS] [${node.label}] Compiling deliverable output...`,
+    `[READY] [${node.label}] Awaiting backend result.`
   ];
-
-  return templates;
 };
 
-export const WorkflowStatus = ({ currentNodeIndex = 0 }) => {
+export const WorkflowStatus = ({ currentNodeIndex = 0, workflowNodes = [] }) => {
   const [logs, setLogs] = useState([]);
   const terminalEndRef = useRef(null);
 
   useEffect(() => {
-    // Generate base logs for the current node
-    const messages = generateLogMessage(currentNodeIndex);
-    let logQueue = [];
-    
-    // Add some random historical logs
-    const prevNode = currentNodeIndex > 0 ? WORKFLOW_NODES_LIST[currentNodeIndex - 1] : null;
+    const node = workflowNodes[currentNodeIndex] || workflowNodes[0];
+    const prevNode = currentNodeIndex > 0 ? workflowNodes[currentNodeIndex - 1] : null;
+    const messages = buildLogMessages(node);
+    const logQueue = [];
+
     if (prevNode) {
       logQueue.push({
         text: `[SYSTEM] Pipeline node "${prevNode.label}" marked [COMPLETED].`,
@@ -39,41 +30,41 @@ export const WorkflowStatus = ({ currentNodeIndex = 0 }) => {
       });
     }
 
-    logQueue.push({
-      text: `[SYSTEM] Advancing pipeline to node [${currentNodeIndex}]: "${WORKFLOW_NODES_LIST[currentNodeIndex]?.label}".`,
-      time: new Date().toLocaleTimeString(),
-      type: "system"
-    });
+    if (node) {
+      logQueue.push({
+        text: `[SYSTEM] Active pipeline node [${currentNodeIndex}]: "${node.label}".`,
+        time: new Date().toLocaleTimeString(),
+        type: "system"
+      });
+    }
 
     setLogs(logQueue);
 
-    // Stagger stream of new logs
     let delay = 300;
-    messages.forEach((msg, idx) => {
-      setTimeout(() => {
+    const timers = messages.map((msg) => {
+      const timer = setTimeout(() => {
         setLogs((prev) => [
           ...prev,
           {
             text: msg,
             time: new Date().toLocaleTimeString(),
-            type: msg.includes("SUCCESS") || msg.includes("READY") ? "success" : msg.includes("PROCESS") ? "process" : "info"
+            type: msg.includes("READY") ? "success" : msg.includes("PROCESS") ? "process" : "info"
           }
         ]);
       }, delay);
       delay += 800;
+      return timer;
     });
 
-  }, [currentNodeIndex]);
+    return () => timers.forEach(clearTimeout);
+  }, [currentNodeIndex, workflowNodes]);
 
   useEffect(() => {
-    if (terminalEndRef.current) {
-      terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
   return (
     <div className="flex flex-col h-[220px] rounded-2xl bg-black/80 border border-white/[0.08] font-mono text-xs overflow-hidden shadow-2xl relative">
-      {/* Top Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.08] bg-white/[0.02]">
         <div className="flex items-center gap-2 text-gray-400">
           <Terminal className="h-4 w-4 text-cyan-400 animate-pulse" />
@@ -86,14 +77,16 @@ export const WorkflowStatus = ({ currentNodeIndex = 0 }) => {
         </div>
       </div>
 
-      {/* Terminal logs list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {logs.length === 0 && (
+          <div className="text-gray-500">No workflow activity yet.</div>
+        )}
         {logs.map((log, idx) => (
           <div key={idx} className="flex items-start gap-2.5">
             <span className="text-gray-600 shrink-0 select-none">[{log.time}]</span>
             <span className={
-              log.type === "success" 
-                ? "text-emerald-400 font-bold" 
+              log.type === "success"
+                ? "text-emerald-400 font-bold"
                 : log.type === "process"
                   ? "text-cyan-400"
                   : log.type === "system"

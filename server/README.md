@@ -8,6 +8,8 @@ Express/MongoDB backend for the existing AI Venture Studio frontend. It runs ind
 2. Add keys only when ready:
    - `MONGODB_URI`
    - `JWT_SECRET`
+   - `GROQ_API_KEY`
+   - `GROQ_MODEL`
    - `OLLAMA_BASE_URL`
    - `OLLAMA_MODEL`
    - `TAVILY_API_KEY`
@@ -49,5 +51,5 @@ password123
 Protected routes require:
 
 ```text
-Authorization: Bearer <token>
+An authenticated httpOnly `avs_token` cookie set by `/api/auth/login` or `/api/auth/register`.
 ```

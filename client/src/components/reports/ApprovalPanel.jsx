@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "../ui/Card";
 import Button from "../ui/Button";
-import { Play, ShieldAlert, Sparkles, Wand2 } from "lucide-react";
+import { Play, Sparkles, Wand2 } from "lucide-react";
 import { useStudioStore } from "../../store/useStudioStore";
-import { WORKFLOW_NODES_LIST } from "../../data/dummyData";
 import { PanelLoader } from "../ui/Loader";
 import { api } from "../../services/api";
 
-export const ApprovalPanel = ({ project }) => {
+export const ApprovalPanel = ({ project, workflowNodes = [] }) => {
   const { isAutoRunning, setAutoRunning } = useStudioStore();
   const [feedback, setFeedback] = useState("");
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [isStepping, setIsStepping] = useState(false);
+  const [feedbackStatus, setFeedbackStatus] = useState("");
 
-  const activeNode = WORKFLOW_NODES_LIST[project.currentNodeIndex] || WORKFLOW_NODES_LIST[0];
-  const isFinalNode = project.currentNodeIndex >= WORKFLOW_NODES_LIST.length - 1;
+  const activeNode = workflowNodes[project.currentNodeIndex] || workflowNodes[0];
+  const isFinalNode = workflowNodes.length > 0 && project.currentNodeIndex >= workflowNodes.length;
 
   // Auto-running simulation loop
   useEffect(() => {
@@ -33,11 +33,7 @@ export const ApprovalPanel = ({ project }) => {
 
   const handleApprove = () => {
     setIsStepping(true);
-    // Simulate compilation delay for high-fidelity loader visual
-    setTimeout(() => {
-      api.runNextNode(project.id);
-      setIsStepping(false);
-    }, 1000);
+    api.runNextNode(project.id).finally(() => setIsStepping(false));
   };
 
   const handleToggleAuto = () => {
@@ -46,13 +42,16 @@ export const ApprovalPanel = ({ project }) => {
 
   const handleFeedbackSubmit = (e) => {
     e.preventDefault();
-    if (!feedback.trim()) return;
+    if (!feedback.trim() || !activeNode?.id) return;
     setIsSubmittingFeedback(true);
-    setTimeout(() => {
-      setIsSubmittingFeedback(false);
-      setFeedback("");
-      alert(`Feedback for ${activeNode.label} submitted. AI agent will regenerate the node shortly.`);
-    }, 1200);
+    setFeedbackStatus("");
+    api.regenerateAgent(project.id, activeNode.id)
+      .then(() => {
+        setFeedback("");
+        setFeedbackStatus("Regeneration requested.");
+      })
+      .catch((error) => setFeedbackStatus(error.message))
+      .finally(() => setIsSubmittingFeedback(false));
   };
 
   // Dynamic loader text based on the active node name
@@ -130,6 +129,7 @@ export const ApprovalPanel = ({ project }) => {
                   Regen
                 </Button>
               </form>
+              {feedbackStatus && <span className="self-center text-xs text-gray-400">{feedbackStatus}</span>}
 
               <Button
                 variant="secondary"
@@ -157,7 +157,7 @@ export const ApprovalPanel = ({ project }) => {
             <Button
               variant="glow"
               size="md"
-              onClick={() => alert("Deliverables compile started. Check your files.")}
+              onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL || "/api"}/exports/${project.id}/markdown`, "_blank", "noopener,noreferrer")}
               className="gap-1.5 cursor-pointer w-full sm:w-auto font-bold"
             >
               <Sparkles className="h-4 w-4 animate-spin" />

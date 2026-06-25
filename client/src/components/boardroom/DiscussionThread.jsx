@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useStudioStore } from "../../store/useStudioStore";
-import { EXECUTIVE_MEMBERS } from "../../data/dummyData";
+import { getAdvisorMeta } from "../../utils/advisors";
 import { cn } from "../../utils/cn";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClipLoader } from "../ui/Loader";
@@ -10,64 +10,39 @@ export const DiscussionThread = () => {
   const threadEndRef = useRef(null);
 
   useEffect(() => {
-    if (threadEndRef.current) {
-      threadEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [discussion, isBoardroomTyping]);
-
-  const getSenderMeta = (senderId) => {
-    if (senderId === "user") {
-      return {
-        name: "Founder (You)",
-        role: "Operator",
-        avatar: "👑",
-        color: "bg-purple-500/10 text-purple-300 border-purple-500/35 self-end"
-      };
-    }
-
-    const exec = EXECUTIVE_MEMBERS.find((m) => m.id === senderId);
-    if (exec) {
-      return {
-        name: exec.name,
-        role: exec.role,
-        avatar: exec.avatar,
-        color: "bg-white/[0.03] text-gray-200 border-white/[0.08] self-start"
-      };
-    }
-
-    return {
-      name: "Board Advisor",
-      role: "Advisor",
-      avatar: "🤖",
-      color: "bg-white/[0.03] text-gray-200 border-white/[0.08] self-start"
-    };
-  };
 
   return (
     <div className="flex flex-col h-[400px] rounded-2xl bg-white/[0.01] border border-white/[0.06] p-4 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
       <AnimatePresence initial={false}>
+        {discussion.length === 0 && !isBoardroomTyping && (
+          <div className="m-auto text-center text-sm text-gray-500 max-w-sm">
+            Ask a boardroom question to start a live backend discussion.
+          </div>
+        )}
+
         {discussion.map((msg, idx) => {
           const isUser = msg.senderId === "user";
-          const meta = getSenderMeta(msg.senderId);
+          const meta = getAdvisorMeta(msg);
 
           return (
             <motion.div
-              key={idx}
+              key={`${msg.timestamp}-${idx}`}
               initial={{ opacity: 0, y: 15, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.3 }}
               className={cn(
                 "flex gap-3 max-w-[85%] border p-4 rounded-2xl backdrop-blur-xl shadow-md",
-                isUser ? "ml-auto rounded-tr-none" : "mr-auto rounded-tl-none",
-                meta.color
+                isUser
+                  ? "ml-auto rounded-tr-none bg-purple-500/10 text-purple-300 border-purple-500/35"
+                  : "mr-auto rounded-tl-none bg-white/[0.03] text-gray-200 border-white/[0.08]"
               )}
             >
-              {/* Avatar Icon */}
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 border border-white/10 shrink-0 text-xl">
-                {meta.avatar}
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 border border-white/10 shrink-0">
+                <span className="text-xs font-black text-gray-200">{meta.initials}</span>
               </div>
 
-              {/* Message Details */}
               <div className="space-y-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <span className="font-bold text-xs text-white">{meta.name}</span>
@@ -82,7 +57,6 @@ export const DiscussionThread = () => {
           );
         })}
 
-        {/* Typing indicator featuring ClipLoader spinner */}
         {isBoardroomTyping && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
