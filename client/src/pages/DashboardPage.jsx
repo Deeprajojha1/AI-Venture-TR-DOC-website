@@ -9,12 +9,7 @@ export const DashboardPage = () => {
   const { projects } = useStudioStore();
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="p-6 space-y-8"
-    >
+    <div className="p-6 space-y-8">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -51,7 +46,7 @@ export const DashboardPage = () => {
         </div>
 
       </div>
-    </motion.div>
+    </div>
   );
 };
 

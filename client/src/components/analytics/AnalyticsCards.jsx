@@ -45,13 +45,13 @@ export const AnalyticsCards = ({ analytics }) => {
         const Icon = card.icon;
 
         return (
-          <Card key={idx} hoverGlow={true} className={`border-white/[0.06] bg-white/[0.01] ${card.color}`}>
-            <CardContent className="p-5 flex flex-col gap-2">
+          <Card key={idx} hoverGlow={true} className={`min-w-0 border-white/[0.06] bg-white/[0.01] ${card.color}`}>
+            <CardContent className="p-5 flex min-w-0 flex-col gap-2">
               <div className="flex justify-between items-center w-full">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">{card.title}</span>
-                <Icon className="h-5 w-5" />
+                <span className="min-w-0 truncate text-xs font-semibold uppercase tracking-wider text-gray-500">{card.title}</span>
+                <Icon className="h-5 w-5 shrink-0" />
               </div>
-              <div className="text-2xl font-black text-white tracking-tight">{card.value}</div>
+              <div className="truncate text-2xl font-black tracking-tight text-white">{card.value}</div>
               <p className="text-[10px] text-gray-400">{card.desc}</p>
             </CardContent>
           </Card>

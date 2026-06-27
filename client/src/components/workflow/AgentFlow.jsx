@@ -97,7 +97,7 @@ export const AgentFlow = ({ workflowNodes = [], completedNodes = [], currentNode
         nodesDraggable={false}
         elementsSelectable={false}
         panOnDrag={true}
-        zoomOnScroll={true}
+        zoomOnScroll={false}
       >
         <Background color="#fff" opacity={0.03} gap={16} size={1} />
         <Controls 

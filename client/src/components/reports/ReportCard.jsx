@@ -1,9 +1,29 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { CheckCircle2, Lock } from "lucide-react";
 import { cn } from "../../utils/cn";
 
 export const ReportCard = ({ workflowNodes = [], completedNodeIds = [], activeNodeIndex, selectedReportKey, setSelectedReportKey }) => {
   const reportNodes = workflowNodes.slice(1).filter((node) => node.outputFile);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const containerRef = useRef(null);
+  const lastCompletedIndex = completedNodeIds[completedNodeIds.length - 1];
+
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const isAtBottom = scrollHeight - scrollTop <= clientHeight + 50;
+    
+    setIsUserScrolling(!isAtBottom);
+  };
+
+  // Auto-scroll to bottom when new report is completed, but only if user isn't scrolling
+  useEffect(() => {
+    if (!isUserScrolling && containerRef.current) {
+      if (lastCompletedIndex !== undefined) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    }
+  }, [lastCompletedIndex, isUserScrolling]);
 
   return (
     <div className="space-y-2">
@@ -11,7 +31,11 @@ export const ReportCard = ({ workflowNodes = [], completedNodeIds = [], activeNo
         Deliverables & Artifacts
       </h3>
 
-      <div className="space-y-1 max-h-[480px] overflow-y-auto pr-1">
+      <div 
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="space-y-1 max-h-[480px] overscroll-contain overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+      >
         {reportNodes.length === 0 && (
           <div className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.02] text-xs text-gray-500">
             Reports will appear after backend agents run.

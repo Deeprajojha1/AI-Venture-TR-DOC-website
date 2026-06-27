@@ -8,7 +8,7 @@ export const Navbar = () => {
   const { user } = useStudioStore();
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-black/40 backdrop-blur-xl transition-all duration-300">
+    <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-white/[0.08] bg-black/80 backdrop-blur-xl transition-all duration-300">
       <div className="flex h-16 items-center justify-between px-6">
         {/* Logo */}
         <div className="flex items-center gap-2.5">

@@ -14,7 +14,8 @@ const buildLogMessages = (node) => {
 
 export const WorkflowStatus = ({ currentNodeIndex = 0, workflowNodes = [] }) => {
   const [logs, setLogs] = useState([]);
-  const terminalEndRef = useRef(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const node = workflowNodes[currentNodeIndex] || workflowNodes[0];
@@ -60,8 +61,22 @@ export const WorkflowStatus = ({ currentNodeIndex = 0, workflowNodes = [] }) => 
   }, [currentNodeIndex, workflowNodes]);
 
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
+    if (!isUserScrolling && containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  }, [logs, isUserScrolling]);
+
+  // Detect when user is manually scrolling
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const isAtBottom = scrollHeight - scrollTop <= clientHeight + 50;
+    
+    setIsUserScrolling(!isAtBottom);
+  };
 
   return (
     <div className="flex flex-col h-[220px] rounded-2xl bg-black/80 border border-white/[0.08] font-mono text-xs overflow-hidden shadow-2xl relative">
@@ -77,7 +92,11 @@ export const WorkflowStatus = ({ currentNodeIndex = 0, workflowNodes = [] }) => 
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <div 
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="flex-1 overscroll-contain overflow-y-auto p-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+      >
         {logs.length === 0 && (
           <div className="text-gray-500">No workflow activity yet.</div>
         )}
@@ -97,7 +116,6 @@ export const WorkflowStatus = ({ currentNodeIndex = 0, workflowNodes = [] }) => 
             </span>
           </div>
         ))}
-        <div ref={terminalEndRef} />
       </div>
     </div>
   );

@@ -35,23 +35,20 @@ const DashboardLayout = () => {
       <div className="absolute top-1/2 left-1/3 h-[450px] w-[450px] rounded-full bg-indigo-500/5 blur-[120px] animate-pulse-glow [animation-delay:-2s] pointer-events-none z-0" />
 
       {/* Main Canvas layout */}
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 h-screen overflow-hidden">
         <Navbar />
+        <Sidebar />
 
-        <div className="flex-1 flex items-stretch">
-          <Sidebar />
+        <main className="fixed inset-x-0 bottom-0 top-16 flex min-w-0 flex-col overflow-hidden bg-white/[0.005] lg:left-80">
+          <WorkspaceTabs />
 
-          <main className="flex-1 flex flex-col min-w-0 bg-white/[0.005]">
-            <WorkspaceTabs />
-
-            <div className="flex-1 overflow-y-auto">
-              {/* Suspense wrapper for lazy routes, standardizing loading transitions */}
-              <Suspense fallback={<PageLoader message="Loading workspace components..." />}>
-                <Outlet />
-              </Suspense>
-            </div>
-          </main>
-        </div>
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {/* Suspense wrapper for lazy routes, standardizing loading transitions */}
+            <Suspense fallback={<PageLoader message="Loading workspace components..." />}>
+              <Outlet />
+            </Suspense>
+          </div>
+        </main>
       </div>
 
     </div>

@@ -16,7 +16,7 @@ export const WorkspaceTabs = () => {
   ];
 
   return (
-    <div className="flex justify-center sm:justify-start w-full border-b border-white/[0.08] bg-black/10 px-6 py-2">
+    <div className="flex-shrink-0 flex justify-center sm:justify-start w-full border-b border-white/[0.08] bg-black/10 px-6 py-2">
       <nav className="flex space-x-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.05] backdrop-blur-md">
         {tabs.map((tab) => {
           const Icon = tab.icon;

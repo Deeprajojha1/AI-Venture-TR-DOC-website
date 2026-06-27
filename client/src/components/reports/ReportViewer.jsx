@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent } from "../ui/Card";
+import { Card } from "../ui/Card";
 import { Download, FileText } from "lucide-react";
 import Button from "../ui/Button";
 
@@ -165,7 +165,9 @@ export const ReportViewer = ({ title, content, onExport }) => {
       </div>
 
       {/* Content panel */}
-      <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <div 
+        className="flex-1 overscroll-contain overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+      >
         <article className="prose prose-invert max-w-none text-left">
           {parseMarkdown(content)}
         </article>

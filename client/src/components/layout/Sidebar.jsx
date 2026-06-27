@@ -28,46 +28,46 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="w-80 border-r border-white/[0.08] bg-black/20 backdrop-blur-xl flex flex-col hidden lg:flex">
+    <aside className={cn('fixed', 'left-0', 'top-16', 'bottom-0', 'z-40', 'w-80', 'border-r', 'border-white/[0.08]', 'bg-black/70', 'backdrop-blur-xl', 'flex', 'flex-col', 'hidden', 'lg:flex', 'overflow-hidden')}>
       {/* Active Project Card Summary */}
-      <div className="p-6 border-b border-white/[0.08] bg-white/[0.01]">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-purple-400 mb-2">
-          <Sparkles className="h-3.5 w-3.5" />
+      <div className={cn('p-6', 'border-b', 'border-white/[0.08]', 'bg-white/[0.01]')}>
+        <div className={cn('flex', 'items-center', 'gap-2', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wider', 'text-purple-400', 'mb-2')}>
+          <Sparkles className={cn('h-3.5', 'w-3.5')} />
           Active Workspace
         </div>
-        <h2 className="text-xl font-bold text-white mb-1 truncate">{activeProject.name}</h2>
-        <p className="text-xs text-gray-400 mb-4">{activeProject.industry}</p>
+        <h2 className={cn('text-xl', 'font-bold', 'text-white', 'mb-1', 'truncate')}>{activeProject.name}</h2>
+        <p className={cn('text-xs', 'text-gray-400', 'mb-4')}>{activeProject.industry}</p>
 
         {/* Progress Bar */}
-        <div className="space-y-1.5 mb-4">
-          <div className="flex justify-between text-xs font-medium">
+        <div className={cn('space-y-1.5', 'mb-4')}>
+          <div className={cn('flex', 'justify-between', 'text-xs', 'font-medium')}>
             <span className="text-gray-400">Workflow Progress</span>
-            <span className="text-purple-300 font-semibold">{completionPercentage}%</span>
+            <span className={cn('text-purple-300', 'font-semibold')}>{completionPercentage}%</span>
           </div>
-          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+          <div className={cn('h-1.5', 'w-full', 'bg-white/5', 'rounded-full', 'overflow-hidden')}>
             <div 
-              className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full transition-all duration-500"
+              className={cn('h-full', 'bg-gradient-to-r', 'from-purple-500', 'to-cyan-400', 'rounded-full', 'transition-all', 'duration-500')}
               style={{ width: `${completionPercentage}%` }}
             />
           </div>
         </div>
 
         {/* Venture Score */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-cyan-400" />
-            <span className="text-xs text-gray-300 font-medium">Venture Score</span>
+        <div className={cn('flex', 'items-center', 'justify-between', 'p-3', 'rounded-xl', 'bg-white/[0.03]', 'border', 'border-white/[0.06]')}>
+          <div className={cn('flex', 'items-center', 'gap-2')}>
+            <TrendingUp className={cn('h-4', 'w-4', 'text-cyan-400')} />
+            <span className={cn('text-xs', 'text-gray-300', 'font-medium')}>Venture Score</span>
           </div>
-          <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+          <span className={cn('text-lg', 'font-bold', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-cyan-400', 'to-purple-400')}>
             {activeProject.score}/100
           </span>
         </div>
       </div>
 
       {/* Projects Switcher List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        <h3 className="px-2 text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-          <FolderGit2 className="h-3.5 w-3.5" />
+      <div className={cn('flex-1', 'overflow-y-auto', 'p-4', 'space-y-3')}>
+        <h3 className={cn('px-2', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wider', 'text-gray-500', 'flex', 'items-center', 'gap-1.5')}>
+          <FolderGit2 className={cn('h-3.5', 'w-3.5')} />
           Select Project
         </h3>
         
@@ -90,8 +90,8 @@ export const Sidebar = () => {
                     : "bg-transparent border-transparent text-gray-400 hover:bg-white/[0.02] hover:text-white"
                 )}
               >
-                <div className="flex justify-between items-center w-full">
-                  <span className="font-semibold text-sm truncate pr-2">{proj.name}</span>
+                <div className={cn('flex', 'justify-between', 'items-center', 'w-full')}>
+                  <span className={cn('font-semibold', 'text-sm', 'truncate', 'pr-2')}>{proj.name}</span>
                   <span className={cn(
                     "text-[10px] px-2 py-0.5 rounded-full border",
                     proj.status === "Completed" 
@@ -103,10 +103,10 @@ export const Sidebar = () => {
                     {proj.status}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] text-gray-500 mt-1">
+                <div className={cn('flex', 'justify-between', 'items-center', 'text-[11px]', 'text-gray-500', 'mt-1')}>
                   <span>{proj.industry}</span>
-                  <span className="flex items-center gap-0.5">
-                    <Percent className="h-3 w-3" />
+                  <span className={cn('flex', 'items-center', 'gap-0.5')}>
+                    <Percent className={cn('h-3', 'w-3')} />
                     {completion}%
                   </span>
                 </div>

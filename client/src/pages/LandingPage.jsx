@@ -41,8 +41,8 @@ export const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050607] text-white font-sans selection:bg-cyan-400/20 selection:text-white">
-      <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#050607]/85 backdrop-blur-xl">
+    <div className="min-h-screen bg-[#050607] text-white font-sans selection:bg-cyan-400/20 selection:text-white flex flex-col">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.08] bg-[#050607]/85 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <button onClick={() => handleScrollTo("top")} className="flex items-center gap-2.5 cursor-pointer">
             <span className="flex h-8 w-8 items-center justify-center rounded-md bg-cyan-400 text-black">
@@ -63,7 +63,7 @@ export const LandingPage = () => {
         </div>
       </header>
 
-      <main id="top">
+      <main id="top" className="flex-1 pt-16">
         <section className="relative overflow-hidden border-b border-white/[0.06]">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:48px_48px]" />
           <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#050607] to-transparent" />

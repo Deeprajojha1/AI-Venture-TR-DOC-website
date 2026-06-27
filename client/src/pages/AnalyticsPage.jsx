@@ -4,7 +4,6 @@ import UsageChart from "../components/analytics/UsageChart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { BarChart3, ShieldCheck, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 import { api } from "../services/api";
 
 export const AnalyticsPage = () => {
@@ -34,14 +33,9 @@ export const AnalyticsPage = () => {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="p-6 space-y-6"
-    >
+    <div className="flex min-h-full flex-col gap-6 p-6 lg:h-full lg:min-h-0 lg:overflow-hidden">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.06] backdrop-blur-md">
+      <div className="flex shrink-0 flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.06] backdrop-blur-md">
         <div className="space-y-1">
           <h2 className="text-3xl font-black text-white flex items-center gap-2.5">
             <BarChart3 className="h-7 w-7 text-purple-400" />
@@ -53,57 +47,59 @@ export const AnalyticsPage = () => {
         </div>
       </div>
 
-      {/* Metric Cards Row */}
-      <AnalyticsCards analytics={analytics} />
+      <div className="min-h-0 space-y-6 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {/* Metric Cards Row */}
+        <AnalyticsCards analytics={analytics} />
 
-      {/* Charts section: Area and Bar */}
-      <UsageChart analytics={analytics} />
+        {/* Charts section: Area and Bar */}
+        <UsageChart analytics={analytics} />
 
-      {/* Bottom section: Radar chart & health audit log */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bottom section: Radar chart & health audit log */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Agent Capabilities Radar */}
-        <Card className="border-white/[0.06] bg-white/[0.01] lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base text-purple-400 flex items-center gap-1.5">
-              <Sparkles className="h-4.5 w-4.5" />
-              Agent Capability Matrix
-            </CardTitle>
-            <CardDescription>System competence index comparing active models.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[250px] flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={capabilityData}>
-                <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                <PolarAngleAxis dataKey="subject" stroke="#9ca3af" fontSize={10} />
-                <Radar name="Active Agent Cluster" dataKey="A" stroke="#a855f7" fill="#a855f7" fillOpacity={0.2} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          {/* Agent Capabilities Radar */}
+          <Card className="border-white/[0.06] bg-white/[0.01] lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="text-base text-purple-400 flex items-center gap-1.5">
+                <Sparkles className="h-4.5 w-4.5" />
+                Agent Capability Matrix
+              </CardTitle>
+              <CardDescription>System competence index comparing active models.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[250px] flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={capabilityData}>
+                  <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                  <PolarAngleAxis dataKey="subject" stroke="#9ca3af" fontSize={10} />
+                  <Radar name="Active Agent Cluster" dataKey="A" stroke="#a855f7" fill="#a855f7" fillOpacity={0.2} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-        {/* Security / System Health Log */}
-        <Card className="border-white/[0.06] bg-white/[0.01] lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base text-emerald-400 flex items-center gap-1.5">
-              <ShieldCheck className="h-4.5 w-4.5" />
-              System Vetting Log
-            </CardTitle>
-            <CardDescription>Log outputs from security checking models.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {systemLogs.map((log, idx) => (
-              <div key={idx} className="flex gap-2.5 text-xs font-mono p-2.5 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                <span className="text-gray-600">[{new Date().toLocaleTimeString()}]</span>
-                <span className="text-purple-400 font-semibold">{log.module}</span>
-                <span className={log.type === "success" ? "text-emerald-400" : "text-gray-300"}>{log.text}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+          {/* Security / System Health Log */}
+          <Card className="border-white/[0.06] bg-white/[0.01] lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base text-emerald-400 flex items-center gap-1.5">
+                <ShieldCheck className="h-4.5 w-4.5" />
+                System Vetting Log
+              </CardTitle>
+              <CardDescription>Log outputs from security checking models.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {systemLogs.map((log, idx) => (
+                <div key={idx} className="flex min-w-0 flex-wrap gap-2.5 rounded-xl border border-white/[0.03] bg-white/[0.01] p-2.5 font-mono text-xs">
+                  <span className="shrink-0 text-gray-600">[{new Date().toLocaleTimeString()}]</span>
+                  <span className="shrink-0 font-semibold text-purple-400">{log.module}</span>
+                  <span className={log.type === "success" ? "min-w-0 flex-1 break-words text-emerald-400" : "min-w-0 flex-1 break-words text-gray-300"}>{log.text}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

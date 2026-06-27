@@ -5,20 +5,14 @@ import ConsensusPanel from "../components/boardroom/ConsensusPanel";
 import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
 import { HelpCircle, RefreshCw, Users } from "lucide-react";
-import { motion } from "framer-motion";
 
 export const BoardroomPage = () => {
   const { resetBoardroom, discussion } = useStudioStore();
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="p-6 space-y-6"
-    >
+    <div className="flex min-h-full flex-col gap-6 p-6 lg:h-full lg:min-h-0 lg:overflow-hidden">
       {/* Boardroom Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.06] backdrop-blur-md">
+      <div className="flex shrink-0 flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.06] backdrop-blur-md">
         <div className="space-y-1">
           <h2 className="text-3xl font-black text-white flex items-center gap-2.5">
             <Users className="h-7 w-7 text-purple-400" />
@@ -44,11 +38,11 @@ export const BoardroomPage = () => {
       </div>
 
       {/* Main Boardroom Workspace grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-3 lg:items-stretch">
         
         {/* Left Column: Discussion Thread & Chat Input */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between px-2">
+        <div className="flex min-h-0 flex-col gap-4 lg:col-span-2">
+          <div className="flex shrink-0 items-center justify-between px-2">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Live Discussion Thread</h3>
             <span className="text-[11px] text-gray-500 font-semibold">{discussion.length} Messages logged</span>
           </div>
@@ -59,7 +53,7 @@ export const BoardroomPage = () => {
         </div>
 
         {/* Right Column: Consensus Alignment Dashboard */}
-        <div className="lg:col-span-1">
+        <div className="min-h-0 lg:col-span-1 lg:overflow-y-auto lg:pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           <ConsensusPanel />
 
           {/* Quick Consultation Suggestions */}
@@ -91,7 +85,7 @@ export const BoardroomPage = () => {
         </div>
 
       </div>
-    </motion.div>
+    </div>
   );
 };
 

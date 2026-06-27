@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useStudioStore } from "../store/useStudioStore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import Button from "../components/ui/Button";
@@ -10,7 +10,6 @@ import ReportViewer from "../components/reports/ReportViewer";
 import { getReportKey, getWorkflowNodes } from "../utils/workflow";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { ChevronRight, FileJson, Mail, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 import { api } from "../services/api";
 
 export const ProjectPage = () => {
@@ -19,8 +18,8 @@ export const ProjectPage = () => {
   const [actionStatus, setActionStatus] = useState("");
 
   const project = projects.find((p) => p.id === selectedProjectId) || projects[0];
-  const workflowNodes = getWorkflowNodes(project);
-  const backendReports = reportsByProject[project?.id] || [];
+  const workflowNodes = useMemo(() => getWorkflowNodes(project), [project]);
+  const backendReports = useMemo(() => reportsByProject[project?.id] || [], [reportsByProject, project?.id]);
   const selectedBackendReport = backendReports.find((report) => getReportKey(report) === selectedReportKey);
   const selectedReportContent = selectedBackendReport?.content || "Run the workflow to generate this report.";
 
@@ -30,7 +29,7 @@ export const ProjectPage = () => {
     const latestReport = [...backendReports].reverse().find((report) => getReportKey(report));
     const firstReportNode = workflowNodes.find((node) => node.outputFile);
     setSelectedReportKey(getReportKey(latestReport) || firstReportNode?.outputFile || null);
-  }, [backendReports.length, project?.id, workflowNodes.length]);
+  }, [backendReports, project, workflowNodes]);
 
   if (!project) {
     return (
@@ -92,26 +91,21 @@ export const ProjectPage = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="p-6 space-y-6"
-    >
+    <div className="flex min-h-full flex-col gap-6 p-6 lg:h-full lg:min-h-0 lg:overflow-hidden">
       {/* Title Header */}
-      <div className="flex flex-col xl:flex-row justify-between gap-4 p-6 rounded-2xl bg-white/[0.01] border border-white/[0.06] backdrop-blur-md">
-        <div className="space-y-1 max-w-3xl">
-          <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 uppercase tracking-widest">
-            <span>Project Workspace</span>
+      <div className="grid shrink-0 grid-cols-1 gap-5 rounded-2xl border border-white/[0.06] bg-white/[0.01] p-6 backdrop-blur-md xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+        <div className="min-w-0 space-y-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-widest text-purple-400">
+            <span className="shrink-0">Project Workspace</span>
             <ChevronRight className="h-3 w-3" />
-            <span className="text-cyan-400">{project.industry}</span>
+            <span className="min-w-0 truncate text-cyan-400">{project.industry}</span>
           </div>
-          <h2 className="text-3xl font-black text-white">{project.name}</h2>
-          <p className="text-sm text-gray-400 leading-relaxed">{project.idea}</p>
+          <h2 className="break-words text-3xl font-black leading-tight text-white">{project.name}</h2>
+          <p className="max-w-5xl text-sm leading-relaxed text-gray-400 line-clamp-3">{project.idea}</p>
         </div>
 
         {/* Global Export Buttons */}
-        <div className="flex flex-wrap items-center gap-2 mt-2 xl:mt-0 xl:self-center">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 xl:w-[420px] xl:justify-end">
           <Button variant="ghost" size="sm" onClick={() => handleExport("md")} className="gap-1.5 border border-white/5 bg-white/5 cursor-pointer">
             Export MD
           </Button>
@@ -126,12 +120,13 @@ export const ProjectPage = () => {
             <Mail className="h-4 w-4" />
             Email
           </Button>
-          {actionStatus && <span className="text-xs text-gray-400">{actionStatus}</span>}
+          {actionStatus && <span className="min-w-0 flex-1 basis-full truncate text-xs text-gray-400 xl:text-right">{actionStatus}</span>}
         </div>
       </div>
 
-      {/* Main Grid: Flow & Radar */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="min-h-0 space-y-6 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {/* Main Grid: Flow & Radar */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* React Flow pipeline (Left/Center) */}
         <div className="xl:col-span-2 space-y-4">
@@ -188,13 +183,13 @@ export const ProjectPage = () => {
           </Card>
         </div>
 
-      </div>
+        </div>
 
-      {/* Approval control board */}
-      <ApprovalPanel project={project} workflowNodes={workflowNodes} />
+        {/* Approval control board */}
+        <ApprovalPanel project={project} workflowNodes={workflowNodes} />
 
-      {/* Reports Workspace: Deliverables menu & Markdown Viewer */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        {/* Reports Workspace: Deliverables menu & Markdown Viewer */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         
         {/* Reports Navigation Sidebar */}
         <div className="lg:col-span-1">
@@ -216,9 +211,10 @@ export const ProjectPage = () => {
           />
         </div>
 
+        </div>
       </div>
 
-    </motion.div>
+    </div>
   );
 };
 
